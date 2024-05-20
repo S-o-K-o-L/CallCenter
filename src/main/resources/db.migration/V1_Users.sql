@@ -27,13 +27,12 @@ values ('USER_ROLE'),
        ('CONSULTANT_ROLE');
 
 insert into users (username, password, email)
-values ('Ivan', '1', 'qwer@email.com'),
-       ('Tolya', '1', 'asdf@email.com'),
-       ('Alex', '1', 'zxcv@email.com');
+values ('Ivan', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'qwer@email.com'),
+       ('Tolya', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'asdf@email.com'),
+       ('Alex', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'zxcv@email.com');
 
 insert into users_roles (user_id, role_id)
-values (1, 1),
-       (2, 2),
-       (3, 3);
+values (4, 1),
+       (5, 2),
+       (6, 3);
 
-select * from users;
