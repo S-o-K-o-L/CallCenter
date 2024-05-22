@@ -39,15 +39,15 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("enter 2");
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/index", "/css/**", "/js/**").permitAll()
+                        .requestMatchers("/index.html", "/css/**", "/js/**").permitAll()
                         .requestMatchers("/secured").authenticated()
                         .requestMatchers("/info").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers("/consultant").hasRole("CONSULTANT")
                         .anyRequest().permitAll())
                 .sessionManagement((sessionManagement)
                         -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
