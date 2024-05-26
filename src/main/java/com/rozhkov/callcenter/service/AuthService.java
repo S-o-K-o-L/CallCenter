@@ -1,7 +1,7 @@
 package com.rozhkov.callcenter.service;
 
-import com.rozhkov.callcenter.dto.JwtRequest;
-import com.rozhkov.callcenter.dto.JwtResponse;
+import com.rozhkov.callcenter.dto.jwt.JwtRequest;
+import com.rozhkov.callcenter.dto.jwt.JwtResponse;
 import com.rozhkov.callcenter.dto.RegistrationUserDto;
 import com.rozhkov.callcenter.dto.UserDto;
 import com.rozhkov.callcenter.entity.User;

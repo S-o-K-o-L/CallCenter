@@ -1,4 +1,4 @@
-package com.rozhkov.callcenter.dto;
+package com.rozhkov.callcenter.dto.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

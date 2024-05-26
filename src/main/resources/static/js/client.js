@@ -55,7 +55,7 @@ btnConnect.onclick = () => {
     if (roomNameInput.value === "") {
         alert("Room can not be null!");
     } else {
-        roomName = roomNameInput.value;
+        roomName = localStorage.getItem("room");
         socket.emit("joinRoom", roomName);
         divRoomConfig.classList.add("d-none");
         roomDiv.classList.remove("d-none");

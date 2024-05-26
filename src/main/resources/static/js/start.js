@@ -1,7 +1,15 @@
 function handleStart(event) {
     event.preventDefault();
 
-    fetch('http://localhost:8080/registration', {
+    localStorage.setItem("room", generateRoomName());
+
+    const user = {
+        username: localStorage.getItem("username"),
+        password: localStorage.getItem("password"),
+        room: localStorage.getItem("room")
+    };
+
+    fetch('http://localhost:8080/connect', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -21,6 +29,15 @@ function handleStart(event) {
 
 }
 
-// Attach the handleRegistration function to the form's submit event
-const registrationForm = document.getElementById("registrationForm");
-registrationForm.addEventListener("submit", handleRegistration);
+function generateRoomName() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = 10;
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+const startBtn = document.getElementById("startBtn");
+startBtn.addEventListener("click", handleStart);

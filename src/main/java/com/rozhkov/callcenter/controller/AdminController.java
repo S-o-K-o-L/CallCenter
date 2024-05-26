@@ -1,7 +1,7 @@
 package com.rozhkov.callcenter.controller;
 
-import com.rozhkov.callcenter.dto.JwtRequest;
-import com.rozhkov.callcenter.dto.RoomDto;
+import com.rozhkov.callcenter.dto.jwt.JwtRequest;
+import com.rozhkov.callcenter.dto.UserRoomDto;
 import com.rozhkov.callcenter.service.LogicServer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +18,16 @@ public class AdminController {
 
     @PostMapping("/admin")
     public ResponseEntity<?> createAuthToken(@RequestBody JwtRequest authRequest) {
-        return authService.createAuthToken(authRequest);
+        return ResponseEntity.ok("sdf");
+    }
+
+    @PostMapping("/connect")
+    public ResponseEntity<?> addNewUser(@RequestBody UserRoomDto userRoomDto) {
+        return logicServer.addNewUser(userRoomDto);
     }
 
     @PostMapping("/get")
-    public ResponseEntity<?> createAuthToken(@RequestBody RoomDto roomDto) {
-        logicServer
-        return ResponseEntity.ok(roomDto);
+    public ResponseEntity<?> getUsers() {
+        return logicServer.getAdminsQueue();
     }
 }
