@@ -51,12 +51,30 @@ function toggleTrack(trackType) {
     icon.classList.toggle("bi-mic-mute-fill", trackType === "audio" && !enabled);
 }
 
+localStorage.setItem("room", generateRoomName());
+
+function generateRoomName() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = 10;
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+}
+
+const user = {
+    username: localStorage.getItem("username"),
+    password: localStorage.getItem("password"),
+    room: localStorage.getItem("room")
+};
+
 btnConnect.onclick = () => {
     if (roomNameInput.value === "") {
         alert("Room can not be null!");
     } else {
         roomName = localStorage.getItem("room");
-        socket.emit("joinRoom", roomName);
+        socket.emit("joinRoom", roomName, user);
         divRoomConfig.classList.add("d-none");
         roomDiv.classList.remove("d-none");
     }

@@ -6,6 +6,8 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
+import com.rozhkov.callcenter.dto.UserRoomDto;
+import com.rozhkov.callcenter.service.LogicService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,14 +16,17 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+
 @Slf4j
 public class SocketHandler {
     private final SocketIOServer server;
     private static final Map<String, String> users = new HashMap<>();
     private static final Map<String, String> rooms = new HashMap<>();
+    private final LogicService logicService;
 
-    public SocketHandler(SocketIOServer server) {
+    public SocketHandler(SocketIOServer server, LogicService logicService) {
         this.server = server;
+        this.logicService = logicService;
         server.addListeners(this);
         server.start();
     }
@@ -37,6 +42,7 @@ public class SocketHandler {
     public void onDisconnect(SocketIOClient client) {
         String clientId = client.getSessionId().toString();
         String room = users.get(clientId);
+        logicService.removeUser(client.getSessionId());
         if (!Objects.isNull(room)) {
             System.out.printf("Client disconnected: %s from : %s%n", clientId, room);
             users.remove(clientId);
@@ -46,13 +52,15 @@ public class SocketHandler {
     }
 
     @OnEvent("joinRoom")
-    public void onJoinRoom(SocketIOClient client, String room) {
+    public void onJoinRoom(SocketIOClient client, String room, UserRoomDto userRoomDto) {
         int connectedClients = server.getRoomOperations(room).getClients().size();
         if (connectedClients == 0) {
             client.joinRoom(room);
             client.sendEvent("created", room);
             users.put(client.getSessionId().toString(), room);
             rooms.put(room, client.getSessionId().toString());
+            userRoomDto.setSessionId(client.getSessionId());
+            logicService.addNewUser(userRoomDto);
         } else if (connectedClients == 1) {
             client.joinRoom(room);
             client.sendEvent("joined", room);
