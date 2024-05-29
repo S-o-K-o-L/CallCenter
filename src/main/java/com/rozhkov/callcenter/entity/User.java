@@ -39,4 +39,12 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Collection<Role> roles;
+
+    @ManyToMany
+    @JoinTable(
+            name = "users_roles_spec",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "spec_id")
+    )
+    private Collection<Spec> specs;
 }

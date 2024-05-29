@@ -17,7 +17,12 @@ public class ConsultantController {
     private final LogicService logicService;
 
     @PostMapping("/consultant")
-    public ResponseEntity<?> getUsers(@RequestBody UserSpecDto userSpecDto) {
+    public ResponseEntity<?> addUsersToConsultant(@RequestBody UserSpecDto userSpecDto) {
         return logicService.attachUserToSpecQueue(userSpecDto);
+    }
+
+    @PostMapping("/get_cons_user")
+    public ResponseEntity<?> getUsers() {
+        return logicService.getUsersFromConsultantQueue();
     }
 }

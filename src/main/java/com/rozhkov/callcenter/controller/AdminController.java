@@ -3,6 +3,7 @@ package com.rozhkov.callcenter.controller;
 import com.rozhkov.callcenter.dto.jwt.JwtRequest;
 import com.rozhkov.callcenter.dto.UserRoomDto;
 import com.rozhkov.callcenter.listener.UserChangeListener;
+import com.rozhkov.callcenter.service.ConsultantService;
 import com.rozhkov.callcenter.service.LogicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -24,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Slf4j
 public class AdminController implements UserChangeListener {
     private LogicService logicService;
+    private final ConsultantService consultantService;
     private final List<UserRoomDto> users = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArraySet<SseEmitter> emitters = new CopyOnWriteArraySet<>();
     @Autowired
@@ -31,19 +34,19 @@ public class AdminController implements UserChangeListener {
         this.logicService = logicService;
     }
 
-    @PostMapping("/admin")
-    public ResponseEntity<?> createAuthToken(@RequestBody JwtRequest authRequest) {
-        return ResponseEntity.ok("sdf");
-    }
-
-    @PostMapping("/get_users")
+    @PostMapping("/admins/get_users")
     public ResponseEntity<?> getUsers() {
         return logicService.getAdminsQueue();
     }
 
-    @PostMapping("/delete_users")
-    public ResponseEntity<?> deleteUsers() {
-        return logicService.getAdminsQueue();
+    @PostMapping("/admins/delete_users")
+    public ResponseEntity<?> deleteUsers(@RequestBody UUID sessionID) {
+        return logicService.removeUser(sessionID);
+    }
+
+    @PostMapping("/admins/get_consultant")
+    public ResponseEntity<?> getConsultant() {
+        return ResponseEntity.ok(consultantService.getConsultantFromDb());
     }
 
     @GetMapping(value = "/admins/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

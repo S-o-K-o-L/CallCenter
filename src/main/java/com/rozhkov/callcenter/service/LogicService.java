@@ -3,13 +3,9 @@ package com.rozhkov.callcenter.service;
 import com.rozhkov.callcenter.dto.UserRoomDto;
 import com.rozhkov.callcenter.dto.UserSpecDto;
 import com.rozhkov.callcenter.entity.User;
-import com.rozhkov.callcenter.exceptions.AppError;
 import com.rozhkov.callcenter.listener.UserChangeListener;
-import com.rozhkov.callcenter.repository.SpecRepository;
 import com.rozhkov.callcenter.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -46,9 +42,10 @@ public class LogicService {
                 .filter(e -> e.getSessionId().equals(uuid))
                 .findFirst();
         userRoomDto.ifPresent(connectedUsersForAdminsQueue::remove);
-        for (UserChangeListener listener : userChangeListeners) {
-            listener.onUserAdded(userRoomDto.get());
-        }
+        userRoomDto.ifPresent(u -> userChangeListeners
+                .forEach(listener -> listener.
+                        onUserAdded(u))
+        );
         return ResponseEntity.ok(userRoomDto.orElse(new UserRoomDto()));
     }
 
@@ -71,4 +68,7 @@ public class LogicService {
     }
 
 
+    public ResponseEntity<?> getUsersFromConsultantQueue() {
+        return ResponseEntity.ok(connectedUsersForConsultantQueue);
+    }
 }
