@@ -2,23 +2,26 @@ package com.rozhkov.callcenter.service;
 
 import com.rozhkov.callcenter.dto.UserRoomDto;
 import com.rozhkov.callcenter.dto.UserSpecDto;
+import com.rozhkov.callcenter.entity.Role;
+import com.rozhkov.callcenter.entity.Spec;
 import com.rozhkov.callcenter.entity.User;
 import com.rozhkov.callcenter.listener.UserChangeListener;
+import com.rozhkov.callcenter.repository.SpecRepository;
 import com.rozhkov.callcenter.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 @RequiredArgsConstructor
 public class LogicService {
     private final UserRepository userRepository;
+    private final SpecRepository specRepository;
     private final List<UserChangeListener> userChangeListeners;
     private final List<UserRoomDto> connectedUsersForAdminsQueue = new CopyOnWriteArrayList<>();
     private final List<UserSpecDto> connectedUsersForConsultantQueue = new CopyOnWriteArrayList<>();
@@ -70,5 +73,36 @@ public class LogicService {
 
     public ResponseEntity<?> getUsersFromConsultantQueue() {
         return ResponseEntity.ok(connectedUsersForConsultantQueue);
+    }
+
+@Transactional
+    public ResponseEntity<?> updateSpec(UserSpecDto userSpecDto) throws InterruptedException {
+        List<Spec> specs = specRepository.findAll();
+        User user = userRepository.findByUsername(userSpecDto.getUsername()).get();
+
+        Collection<Role> roles = user.getRoles();
+        Set<Role> roleSet = new HashSet<>(roles);
+        specs.removeIf(s -> !userSpecDto.getSpecs().contains(s.getSpec()));
+
+        if (userSpecDto.getSpecs().isEmpty()) {
+            specs.add(specRepository.findBySpec("NO_SPEC").get());
+        }
+
+
+        userRepository.deleteUserSpec(user.getId());
+        userRepository.flush();
+
+
+
+        for (Role role : roleSet) {
+            for (Spec spec : specs) {
+                userRepository.insertUserSpec(user.getId(),
+                                role.getId(),
+                                spec.getId());
+            }
+        }
+
+        userRepository.flush();
+        return ResponseEntity.ok(user);
     }
 }

@@ -46,12 +46,20 @@ values ('NO_SPEC');
 insert into users (username, password, email)
 values ('Ivan', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'qwer@email.com'),
        ('Tolya', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'asdf@email.com'),
-       ('Alex', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'zxcv@email.com');
+       ('Alex', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'zxcv@email.com'),
+       ('Not', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'q@aqw.com');
 
 insert into users_roles_spec (user_id, role_id, spec_id)
 values (1, 1, 5),
        (2, 2, 5),
        (3, 3, 4);
 
+insert into users (username, password, email) values
+('Not', '$2a$12$wzMr4e5/4axPkjCHtnakZOW8m2jgYKnG0.BQuUwwnIkjfxH5UvBaC', 'q@aqw.com');
 
+insert into users_roles_spec (user_id, role_id, spec_id)
+values (4, 3, 1);
+
+insert into users_roles_spec (user_id, role_id, spec_id)
+values (3, 3, 4);
 

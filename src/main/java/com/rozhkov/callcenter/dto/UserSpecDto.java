@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -12,5 +13,5 @@ public class UserSpecDto {
     private UUID sessionId;
     private String username;
     private String room;
-    private String spec;
+    private List<String> specs;
 }

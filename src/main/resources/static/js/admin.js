@@ -21,6 +21,28 @@ function fetchAndDisplayConsultants() {
         });
 }
 
+
+function sentToConsul(selectedSpecializations) {
+    fetch('http://localhost:8080/update_spec', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem("token"),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(selectedSpecializations)
+    })
+        .then(response => {
+            if (response.ok) {
+                console.log('Данные успешно отправлены на сервер');
+            } else {
+                console.error('Произошла ошибка при отправке данных на сервер');
+            }
+        })
+        .catch(error => {
+            console.error('Произошла ошибка при отправке данных на сервер:', error);
+        });
+}
+
 function displayConsultants(consultantList) {
     const consultantListElement = document.getElementById('consultantList');
     if (!consultantListElement) {
@@ -29,82 +51,104 @@ function displayConsultants(consultantList) {
     }
     consultantListElement.innerHTML = '';
     consultantList.forEach(consultant => {
-        const listItem = document.createElement('li');
-        const specs = consultant.specs.map(spec => spec.spec).join(', ');
-        listItem.textContent = `${consultant.username} - Specialization: ${specs}`
+        const listItem = document.createElement('div');
+        listItem.style.marginBottom = '10px';
+        let specs = consultant.specs.map(spec => spec.spec).join(', ');
+        listItem.textContent = `${consultant.username} - Specialization: ${specs}`;
 
+        const button = document.getElementById('addRoleBtn');
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Сохранить';
+        saveBtn.style.display = 'none';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Отмена';
+        cancelBtn.style.display = 'none';
+
+        const specializationList = document.createElement('div')
+        specializationList.style.display = 'none';
 
         const addRoleBtn = document.createElement('button');
-        addRoleBtn.textContent = 'Добавить специализацию';
-        addRoleBtn.addEventListener('click', () => {
-            displayCheckList(addRoleBtn);
-        });
+        addRoleBtn.textContent = 'Редактировать специализации';
 
-        const removeRoleBtn = document.createElement('button');
-        removeRoleBtn.textContent = 'Удалить специализацию';
-        removeRoleBtn.addEventListener('click', () => {
-            displayCheckList(addRoleBtn);
+        let isSpecializationListDisplayed = false;
+        addRoleBtn.addEventListener('click', () => {
+
+            function displayCheckList() {
+                if (!isSpecializationListDisplayed) {
+                    specialties.forEach((spec, index) => {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = 'specialization' + index;
+                        checkbox.value = spec;
+
+                        if (specs.includes(checkbox.value)) {
+                            checkbox.checked = true;
+                        }
+
+                        const label = document.createElement('label');
+                        label.htmlFor = 'specialization' + index;
+                        label.textContent = spec;
+
+                        specializationList.appendChild(checkbox);
+                        specializationList.appendChild(label);
+                        specializationList.appendChild(document.createElement('br'));
+                    });
+                }
+
+
+                specializationList.style.display = 'block';
+                saveBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'inline-block';
+
+
+                saveBtn.addEventListener('click', () => {
+                    consultant.specs = Array.from(specializationList
+                        .querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(checkbox => checkbox.value);
+                    specs = consultant.specs.join(', ');
+                    console.log(consultant);
+                    sentToConsul(consultant);
+                    listItem.textContent = `${consultant.username} - Specialization: ${specs}`;
+                    resetForm();
+                });
+
+                cancelBtn.addEventListener('click', () => {
+                    resetForm();
+                });
+
+                function resetForm() {
+                    addRoleBtn.style.display = 'inline-block';
+                    specializationList.style.display = 'none';
+                    saveBtn.style.display = 'none';
+                    cancelBtn.style.display = 'none';
+                    specializationList.querySelectorAll('input[type="checkbox"]')
+                        .forEach(checkbox => {
+                            if (specs.includes(checkbox.value)) {
+                                checkbox.checked = true;
+                            }
+                        });
+                }
+
+                addRoleBtn.insertAdjacentElement('afterend', specializationList);
+                specializationList.insertAdjacentElement('afterend', saveBtn);
+                saveBtn.insertAdjacentElement('afterend', cancelBtn);
+            }
+
+
+                addRoleBtn.style.display = 'none';
+                displayCheckList();
+                isSpecializationListDisplayed = true;
+
         });
 
         const buttonContainer = document.createElement('div');
         buttonContainer.appendChild(addRoleBtn);
-        buttonContainer.appendChild(removeRoleBtn);
         listItem.appendChild(buttonContainer);
 
         consultantListElement.appendChild(listItem);
     });
 }
-
-
-
-
-function displayCheckList() {
-
-
-    specialties.forEach((spec, index) => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = 'specialization' + index;
-        checkbox.value = 'specialization' + index;
-
-        const label = document.createElement('label');
-        label.htmlFor = 'specialization' + index;
-        label.textContent = spec;
-
-        specializationList.appendChild(checkbox);
-        specializationList.appendChild(label);
-        specializationList.appendChild(document.createElement('br'));
-    });
-
-    addRoleBtn.addEventListener('click', () => {
-        specializationList.style.display = 'block';
-        saveBtn.style.display = 'inline-block'; // Показываем кнопку сохранить
-        cancelBtn.style.display = 'inline-block'; // Показываем кнопку отмена
-    });
-
-    saveBtn.addEventListener('click', () => {
-        const selectedSpecializations = Array.from(specializationList.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
-        console.log(selectedSpecializations); // Здесь можно выполнить логику сохранения выбранных специализаций
-        resetForm();
-    });
-
-    cancelBtn.addEventListener('click', () => {
-        resetForm();
-    });
-
-    function resetForm() {
-        specializationList.style.display = 'none';
-        saveBtn.style.display = 'none';
-        cancelBtn.style.display = 'none';
-        specializationList.querySelectorAll('input[type="checkbox"]')
-            .forEach(checkbox => checkbox.checked = false);
-    }
-
-    addRoleBtn.insertAdjacentElement('afterend', specializationList);
-    specializationList.insertAdjacentElement('afterend', saveBtn);
-    saveBtn.insertAdjacentElement('afterend', cancelBtn);
-}
-
 
 let specialties = [];
 
@@ -238,18 +282,6 @@ function fetchSpec() {
 window.onload = fetchUsers;
 
 fetchAndDisplayConsultants();
-
-const button = document.getElementById('addRoleBtn');
-const saveBtn = document.createElement('button');
-saveBtn.textContent = 'Сохранить';
-saveBtn.style.display = 'none'; // Сначала скрываем кнопку сохранить
-
-const cancelBtn = document.createElement('button');
-cancelBtn.textContent = 'Отмена';
-cancelBtn.style.display = 'none'; // Сначала скрываем кнопку отмена
-
-
-specializationList.style.display = 'none'; // Сначала скрываем чек-лист специализаций
 
 const eventSource = new EventSource('http://localhost:8080/admins/stream');
 
