@@ -5,7 +5,7 @@ const [btnConnect, btnToggleVideo, btnToggleAudio, roomDiv, localVideo, remoteVi
     "toggleVideo", "toggleAudio", "roomDiv",
     "localVideo", "remoteVideo"].map(getElement);
 let remoteDescriptionPromise, dataChannel, roomName, localStream, remoteStream,
-    rtcPeerConnection, isCaller;
+    rtcPeerConnection, isCaller, infoDiv;
 
 // you can use public stun and turn servers,
 // but we don't need for local development
@@ -71,17 +71,7 @@ function toggleTrack(trackType) {
     icon.classList.toggle("bi-mic-mute-fill", trackType === "audio" && !enabled);
 }
 
-localStorage.setItem("room", generateRoomName());
 
-function generateRoomName() {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const length = 10;
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return result;
-}
 
 const user = {
     username: localStorage.getItem("username"),
@@ -96,8 +86,6 @@ window.onload = () => {
     roomDiv.classList.remove("d-none");
 };
 
-makeChat();
-
 const handleSocketEvent = (eventName, callback) => socket.on(eventName,
     callback);
 
@@ -108,7 +96,7 @@ handleSocketEvent("created", e => {
         isCaller = true;
     }).catch(console.error);
     chatDiv.style.display = 'none';
-    const infoDiv = document.createElement('div');
+    infoDiv = document.createElement('div');
     infoDiv.id = "info";
     infoDiv.classList.add('dropdown');
     infoDiv.textContent = "Ожидайте подключения консультанта";
@@ -123,8 +111,6 @@ handleSocketEvent("joined", e => {
         socket.emit("ready", roomName);
     }).catch(console.error);
 
-    const div = document.getElementById('mid');
-    div.remove();
     chatDiv.style.display = 'inline-block';
 });
 
@@ -152,7 +138,7 @@ handleSocketEvent("candidate", e => {
 });
 
 function handleDataChannelOpen() {
-    console.log("Received message:", event.data);
+    console.log("Data channel opened.");
 }
 
 function handleDataChannelMessage(event) {
@@ -181,30 +167,33 @@ function makeChat() {
     chatDiv.style.border = "1px solid black";
     chatDiv.style.padding = "10px";
     chatDiv.style.marginTop = "20px";
-    chatDiv.style.overflowY = "scroll"; // Добавляем прокрутку
-    chatDiv.style.height = "200px"; // Устанавливаем высоту
-
+    chatDiv.style.overflowY = "scroll";
+    chatDiv.style.height = "200px";
 
     messageList.style.listStyleType = "none";
     messageList.style.padding = "0";
     chatDiv.appendChild(messageList);
-
 
     input.type = "text";
     input.placeholder = "Type your message...";
     input.style.width = "100%";
     input.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
-            sendMessage(input.value); // Отправляем сообщение при нажатии Enter
-            input.value = ""; // Очищаем поле ввода
+            sendMessage(input.value);
+            input.value = "";
         }
     });
-    // Добавляем созданные элементы в DOM
+
     chatDiv.appendChild(input);
     document.body.appendChild(chatDiv);
 }
 
-
+function onDataChannel(event) {
+    console.log("Data channel created by remote peer.");
+    dataChannel = event.channel;
+    dataChannel.onopen = handleDataChannelOpen;
+    dataChannel.onmessage = handleDataChannelMessage;
+};
 
 handleSocketEvent("ready", e => {
     if (isCaller) {
@@ -213,17 +202,9 @@ handleSocketEvent("ready", e => {
         rtcPeerConnection.ontrack = onAddStream;
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
-
-
         dataChannel = rtcPeerConnection.createDataChannel("textChannel");
-
-        dataChannel.onopen = handleDataChannelOpen;
-        dataChannel.onmessage = function(event) {
-            const message = event.data;
-            displayMessage("Remote: " + message);
-        };
-
-
+        rtcPeerConnection.ondatachannel = onDataChannel;
+        makeChat();
 
         rtcPeerConnection
             .createOffer()
@@ -265,6 +246,8 @@ handleSocketEvent("offer", e => {
 
 handleSocketEvent("answer", e => {
     if (isCaller && rtcPeerConnection.signalingState === "have-local-offer") {
+        infoDiv = document.getElementById('info');
+        infoDiv.style.display = 'none';
         remoteDescriptionPromise = rtcPeerConnection.setRemoteDescription(
             new RTCSessionDescription(e));
         remoteDescriptionPromise.catch(error => console.log(error));
