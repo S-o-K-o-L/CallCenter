@@ -72,24 +72,7 @@ public class LogicService {
         return ResponseEntity.ok(userSpecDto);
     }
 
-
     public ResponseEntity<?> getUsersFromConsultantQueue() {
-        UserSpecDto userSpecDto = new UserSpecDto();
-        userSpecDto.setUsername("asdsad");
-        userSpecDto.setRoom("asdsad");
-        ArrayList<String> strings = new ArrayList<>();
-        strings.add("BOOK");
-        userSpecDto.setSpecs(strings);
-
-        UserSpecDto userSpecDto1 = new UserSpecDto();
-        userSpecDto1.setUsername("asdsad");
-        userSpecDto1.setRoom("asdsad");
-        ArrayList<String> strings1 = new ArrayList<>();
-        strings1.add("TECHNICAL");
-        userSpecDto1.setSpecs(strings1);
-
-        connectedUsersForConsultantQueue.add(userSpecDto);
-        connectedUsersForConsultantQueue.add(userSpecDto1);
         return ResponseEntity.ok(connectedUsersForConsultantQueue);
     }
 
@@ -119,5 +102,14 @@ public class LogicService {
 
         userRepository.flush();
         return ResponseEntity.ok(user);
+    }
+
+    public ResponseEntity<?> delUserFromConsultantQueue(UserSpecDto userSpecDto) {
+        Optional<UserSpecDto> userSpecDto1 = connectedUsersForConsultantQueue
+                .stream()
+                .filter(e -> e.getSessionId().equals(userSpecDto.getSessionId()))
+                .findFirst();
+        userSpecDto1.ifPresent(connectedUsersForConsultantQueue::remove);
+        return ResponseEntity.ok(userSpecDto1.get());
     }
 }

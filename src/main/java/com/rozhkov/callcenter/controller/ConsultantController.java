@@ -32,6 +32,10 @@ public class ConsultantController {
         return logicService.getUsersFromConsultantQueue();
     }
 
+    @PostMapping("/consultant/del_cons_user")
+    public ResponseEntity<?> delUsers(@RequestBody UserSpecDto userSpecDto) {
+        return logicService.delUserFromConsultantQueue(userSpecDto);
+    }
     @PostMapping("/update_spec")
     public ResponseEntity<?> updateSpec(@RequestBody UserSpecDto userSpecDto) throws InterruptedException {
         return logicService.updateSpec(userSpecDto);

@@ -27,7 +27,7 @@ function displayConsultantQueue(consultant) {
         const list = document.createElement('div');
         list.classList.add('list-container');
         list.id = spec;
-
+        list.textContent = "Очередь " + spec;
 
         document.getElementById('cons').appendChild(list);
     });
@@ -51,6 +51,30 @@ function fetchAndDisplayConsultant() {
         .then(data => {
             consultant = data;
             displayConsultantQueue(consultant);
+            fetchAndDisplayUserInCons();
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+}
+
+function sendUserUpdateToServer(user) {
+    fetch('http://localhost:8080/consultant/del_cons_user', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem("token"),
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            users = data;
+            fillQueue(users);
         })
         .catch(error => {
             console.error('There was a problem with the fetch operation:', error);
@@ -61,52 +85,48 @@ function fillQueue(users) {
     users.forEach(user => {
         let spec = user.specs.at(0);
         const list = document.getElementById(spec);
-        list.textContent = "Очередь " + spec;
+        if (list) {
+            const listItem = document.createElement('div');
+            listItem.classList.add('list-item');
 
-        const listItem = document.createElement('div');
-        listItem.classList.add('list-item');
+            const userDiv = document.createElement('div');
+            userDiv.classList.add('dropdown');
+            userDiv.textContent = "Имя - " + user.username;
+            listItem.appendChild(userDiv);
 
-        const userDiv = document.createElement('div');
-        userDiv.classList.add('dropdown');
-        userDiv.textContent = "Имя - " + user.username;
-        listItem.appendChild(userDiv);
+            const roomDiv = document.createElement('div');
+            roomDiv.classList.add('dropdown');
+            roomDiv.textContent = "Комната - " + user.room;
+            listItem.appendChild(roomDiv);
 
-        const roomDiv = document.createElement('div');
-        roomDiv.classList.add('dropdown');
-        roomDiv.textContent = "Комната - " + user.room;
-        listItem.appendChild(roomDiv);
+            const button = document.createElement('button');
+            button.classList.add('button');
+            button.textContent = 'Подключиться';
 
-        const button = document.createElement('button');
-        button.classList.add('button');
-        button.textContent = 'Подключиться';
+            button.addEventListener('click', function () {
+                sendUserUpdateToServer(user);
+                localStorage.setItem("room", user.room);
+                listItem.remove();
+                window.location.href = "index.html";
+            });
 
-        button.addEventListener('click', function() {
-            const userData = {
-                sessionId: user.sessionId,
-                username: user.username,
-                room: user.room,
-                spec: dropdown.value
-            };
-            sendDataToServer(userData);
-            listItem.remove();
-        });
+            const buttonDel = document.createElement('button');
+            buttonDel.classList.add('button');
+            buttonDel.textContent = 'Удалить';
 
-        const buttonDel = document.createElement('button');
-        buttonDel.classList.add('button');
-        buttonDel.textContent = 'Удалить';
+            buttonDel.addEventListener('click', function () {
+                const userData = {
+                    sessionId: user.sessionId
+                };
+                deleteUserFromServer(userData);
+                listItem.remove();
+            });
 
-        buttonDel.addEventListener('click', function() {
-            const userData = {
-                sessionId: user.sessionId
-            };
-            deleteUserFromServer(userData);
-            listItem.remove();
-        });
+            listItem.appendChild(button);
+            listItem.appendChild(buttonDel);
 
-        listItem.appendChild(button);
-        listItem.appendChild(buttonDel);
-
-        document.getElementById('userList').appendChild(listItem);
+            list.appendChild(listItem);
+        }
     });
 }
 
@@ -135,4 +155,3 @@ function fetchAndDisplayUserInCons() {
 
 fetchAndDisplayConsultant();
 
-fetchAndDisplayUserInCons();

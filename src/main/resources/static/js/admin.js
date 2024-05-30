@@ -188,7 +188,7 @@ function updateUsers(users) {
                 sessionId: user.sessionId,
                 username: user.username,
                 room: user.room,
-                spec: dropdown.value
+                specs: [dropdown.value]
             };
             sendDataToServer(userData);
             listItem.remove();
@@ -226,7 +226,6 @@ function deleteUserFromServer(userData) {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // Удаление элемента списка после успешной отправки данных
 
         })
         .catch(error => {
