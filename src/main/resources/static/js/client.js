@@ -4,7 +4,7 @@ const getElement = id => document.getElementById(id);
 const [btnConnect, btnToggleVideo, btnToggleAudio, roomDiv, localVideo, remoteVideo] = ["btnConnect",
     "toggleVideo", "toggleAudio", "roomDiv",
     "localVideo", "remoteVideo"].map(getElement);
-let remoteDescriptionPromise, dataChannel, roomName, localStream, remoteStream,
+let remoteDescriptionPromise, sendChannel, receiveChannel, roomName, localStream, remoteStream,
     rtcPeerConnection, isCaller, infoDiv;
 
 const iceServers = {
@@ -200,8 +200,9 @@ handleSocketEvent("ready", e => {
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
 
-        dataChannel = rtcPeerConnection.createDataChannel("textChannel");
-        rtcPeerConnection.ondatachannel = onDataChannel;
+        sendChannel = rtcPeerConnection.createDataChannel("textChannel");
+        sendChannel.onopen = onSendChannelStateChange;
+        sendChannel.onclose = onSendChannelStateChange;
 
         makeChat();
 
