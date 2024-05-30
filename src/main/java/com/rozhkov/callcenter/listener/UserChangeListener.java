@@ -4,4 +4,5 @@ import com.rozhkov.callcenter.dto.UserRoomDto;
 
 public interface UserChangeListener {
     void onUserAdded(UserRoomDto user);
+    void onUserDelete(UserRoomDto user);
 }

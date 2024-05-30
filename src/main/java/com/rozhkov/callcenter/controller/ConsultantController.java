@@ -2,7 +2,9 @@ package com.rozhkov.callcenter.controller;
 
 import com.rozhkov.callcenter.dto.UserRoomDto;
 import com.rozhkov.callcenter.dto.UserSpecDto;
+import com.rozhkov.callcenter.dto.jwt.JwtRequest;
 import com.rozhkov.callcenter.entity.Spec;
+import com.rozhkov.callcenter.service.ConsultantService;
 import com.rozhkov.callcenter.service.LogicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +20,14 @@ import java.util.List;
 @Slf4j
 public class ConsultantController {
     private final LogicService logicService;
+    private final ConsultantService consultantService;
 
     @PostMapping("/consultant")
     public ResponseEntity<?> addUsersToConsultant(@RequestBody UserSpecDto userSpecDto) {
         return logicService.attachUserToSpecQueue(userSpecDto);
     }
 
-    @PostMapping("/get_cons_user")
+    @PostMapping("/consultant/get_cons_user")
     public ResponseEntity<?> getUsers() {
         return logicService.getUsersFromConsultantQueue();
     }
@@ -32,5 +35,10 @@ public class ConsultantController {
     @PostMapping("/update_spec")
     public ResponseEntity<?> updateSpec(@RequestBody UserSpecDto userSpecDto) throws InterruptedException {
         return logicService.updateSpec(userSpecDto);
+    }
+
+    @PostMapping("/consultant/get_cons")
+    public ResponseEntity<?> getCons(@RequestBody JwtRequest jwtRequest) {
+        return ResponseEntity.ok(consultantService.getOneConsultantFromDb(jwtRequest));
     }
 }

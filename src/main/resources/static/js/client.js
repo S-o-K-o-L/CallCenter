@@ -1,10 +1,10 @@
 const LOCAL_IP_ADDRESS = "127.0.0.1";
 
 const getElement = id => document.getElementById(id);
-const [btnConnect, btnToggleVideo, btnToggleAudio, divRoomConfig, roomDiv, roomNameInput, localVideo, remoteVideo] = ["btnConnect",
-    "toggleVideo", "toggleAudio", "roomConfig", "roomDiv", "roomName",
+const [btnConnect, btnToggleVideo, btnToggleAudio, roomDiv, localVideo, remoteVideo] = ["btnConnect",
+    "toggleVideo", "toggleAudio", "roomDiv",
     "localVideo", "remoteVideo"].map(getElement);
-let remoteDescriptionPromise, roomName, localStream, remoteStream,
+let remoteDescriptionPromise, dataChannel, roomName, localStream, remoteStream,
     rtcPeerConnection, isCaller;
 
 // you can use public stun and turn servers,
@@ -18,6 +18,26 @@ const iceServers = {
             credential: "password"
         }
     ]
+};
+
+const eventSource = new EventSource('http://localhost:8080/admins/stream-delete');
+
+eventSource.onmessage = function (event) {
+    console.log('Получено обновление:', event.data);
+    if (JSON.parse(event.data).body === "Deleted") {
+        window.location.href = "start.html";
+        remoteVideo.srcObject = null;
+        isCaller = true;
+    }
+
+};
+
+const messageList = document.createElement('ul');
+const chatDiv = document.createElement('div');
+const input = document.createElement('input');
+
+eventSource.onerror = function (error) {
+    console.error('Ошибка при подписке на события SSE:', error);
 };
 
 const streamConstraints = {audio: true, video: true};
@@ -69,16 +89,14 @@ const user = {
     room: localStorage.getItem("room")
 };
 
-btnConnect.onclick = () => {
-    if (roomNameInput.value === "") {
-        alert("Room can not be null!");
-    } else {
-        roomName = localStorage.getItem("room");
-        socket.emit("joinRoom", roomName, user);
-        divRoomConfig.classList.add("d-none");
-        roomDiv.classList.remove("d-none");
-    }
+window.onload = () => {
+    roomName = localStorage.getItem("room");
+    socket.emit("joinRoom", roomName, user);
+    // divRoomConfig.classList.add("d-none");
+    roomDiv.classList.remove("d-none");
 };
+
+makeChat();
 
 const handleSocketEvent = (eventName, callback) => socket.on(eventName,
     callback);
@@ -89,6 +107,13 @@ handleSocketEvent("created", e => {
         localVideo.srcObject = stream;
         isCaller = true;
     }).catch(console.error);
+    chatDiv.style.display = 'none';
+    const infoDiv = document.createElement('div');
+    infoDiv.id = "info";
+    infoDiv.classList.add('dropdown');
+    infoDiv.textContent = "Ожидайте подключения консультанта";
+    infoDiv.classList.add('list-item');
+    roomDiv.appendChild(infoDiv);
 });
 
 handleSocketEvent("joined", e => {
@@ -97,6 +122,10 @@ handleSocketEvent("joined", e => {
         localVideo.srcObject = stream;
         socket.emit("ready", roomName);
     }).catch(console.error);
+
+    const div = document.getElementById('mid');
+    div.remove();
+    chatDiv.style.display = 'inline-block';
 });
 
 handleSocketEvent("candidate", e => {
@@ -122,6 +151,61 @@ handleSocketEvent("candidate", e => {
     }
 });
 
+function handleDataChannelOpen() {
+    console.log("Received message:", event.data);
+}
+
+function handleDataChannelMessage(event) {
+    const message = event.data;
+    displayMessage("Remote: " + message);
+}
+
+function displayMessage(message) {
+    const listItem = document.createElement('li');
+    listItem.textContent = message;
+    messageList.appendChild(listItem);
+}
+
+function sendMessage(message) {
+    if (dataChannel.readyState === "open") {
+        dataChannel.send(message);
+    } else {
+        console.log("Data channel is not open.");
+    }
+}
+
+
+function makeChat() {
+
+    chatDiv.id = "chatDiv";
+    chatDiv.style.border = "1px solid black";
+    chatDiv.style.padding = "10px";
+    chatDiv.style.marginTop = "20px";
+    chatDiv.style.overflowY = "scroll"; // Добавляем прокрутку
+    chatDiv.style.height = "200px"; // Устанавливаем высоту
+
+
+    messageList.style.listStyleType = "none";
+    messageList.style.padding = "0";
+    chatDiv.appendChild(messageList);
+
+
+    input.type = "text";
+    input.placeholder = "Type your message...";
+    input.style.width = "100%";
+    input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessage(input.value); // Отправляем сообщение при нажатии Enter
+            input.value = ""; // Очищаем поле ввода
+        }
+    });
+    // Добавляем созданные элементы в DOM
+    chatDiv.appendChild(input);
+    document.body.appendChild(chatDiv);
+}
+
+
+
 handleSocketEvent("ready", e => {
     if (isCaller) {
         rtcPeerConnection = new RTCPeerConnection(iceServers);
@@ -129,6 +213,18 @@ handleSocketEvent("ready", e => {
         rtcPeerConnection.ontrack = onAddStream;
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
+
+
+        dataChannel = rtcPeerConnection.createDataChannel("textChannel");
+
+        dataChannel.onopen = handleDataChannelOpen;
+        dataChannel.onmessage = function(event) {
+            const message = event.data;
+            displayMessage("Remote: " + message);
+        };
+
+
+
         rtcPeerConnection
             .createOffer()
             .then(sessionDescription => {

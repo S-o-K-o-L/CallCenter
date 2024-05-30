@@ -46,8 +46,10 @@ public class LogicService {
                 .findFirst();
         userRoomDto.ifPresent(connectedUsersForAdminsQueue::remove);
         userRoomDto.ifPresent(u -> userChangeListeners
-                .forEach(listener -> listener.
-                        onUserAdded(u))
+                .forEach(listener -> {
+                    listener.onUserAdded(u);
+                    listener.onUserDelete(u);
+                })
         );
         return ResponseEntity.ok(userRoomDto.orElse(new UserRoomDto()));
     }
@@ -72,10 +74,26 @@ public class LogicService {
 
 
     public ResponseEntity<?> getUsersFromConsultantQueue() {
+        UserSpecDto userSpecDto = new UserSpecDto();
+        userSpecDto.setUsername("asdsad");
+        userSpecDto.setRoom("asdsad");
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add("BOOK");
+        userSpecDto.setSpecs(strings);
+
+        UserSpecDto userSpecDto1 = new UserSpecDto();
+        userSpecDto1.setUsername("asdsad");
+        userSpecDto1.setRoom("asdsad");
+        ArrayList<String> strings1 = new ArrayList<>();
+        strings1.add("TECHNICAL");
+        userSpecDto1.setSpecs(strings1);
+
+        connectedUsersForConsultantQueue.add(userSpecDto);
+        connectedUsersForConsultantQueue.add(userSpecDto1);
         return ResponseEntity.ok(connectedUsersForConsultantQueue);
     }
 
-@Transactional
+    @Transactional
     public ResponseEntity<?> updateSpec(UserSpecDto userSpecDto) throws InterruptedException {
         List<Spec> specs = specRepository.findAll();
         User user = userRepository.findByUsername(userSpecDto.getUsername()).get();
@@ -88,17 +106,14 @@ public class LogicService {
             specs.add(specRepository.findBySpec("NO_SPEC").get());
         }
 
-
         userRepository.deleteUserSpec(user.getId());
         userRepository.flush();
-
-
 
         for (Role role : roleSet) {
             for (Spec spec : specs) {
                 userRepository.insertUserSpec(user.getId(),
-                                role.getId(),
-                                spec.getId());
+                        role.getId(),
+                        spec.getId());
             }
         }
 

@@ -1,20 +1,52 @@
+
+.list-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.list-item-abs {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    position: absolute;
+}
+
+
+.dropdown {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+
 .container {
     text-align: center;
+    vertical-align: top;
 }
 
 .list-container {
     display: inline-block;
     text-align: left;
-    margin: 20px; /* Для отступа между контейнерами */
-    padding: 20px; /* Для внутренних отступов */
-    border: 1px solid #ccc; /* Граница контейнера */
-    border-radius: 5px; /* Закругленные углы */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Тень */
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     vertical-align: top;
 }
 
 h1 {
-    margin-bottom: 5px; /* Для отступа между заголовками и списками */
+    margin-bottom: 5px;
 }
 
 .btn-circle {
@@ -66,7 +98,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
 }
 
 .login-form,

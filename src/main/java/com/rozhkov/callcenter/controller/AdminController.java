@@ -29,6 +29,8 @@ public class AdminController implements UserChangeListener {
     private final ConsultantService consultantService;
     private final List<UserRoomDto> users = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArraySet<SseEmitter> emitters = new CopyOnWriteArraySet<>();
+
+    private final CopyOnWriteArraySet<SseEmitter> emittersDelete = new CopyOnWriteArraySet<>();
     @Autowired
     public void setLogicService(LogicService logicService) {
         this.logicService = logicService;
@@ -57,13 +59,27 @@ public class AdminController implements UserChangeListener {
         return emitter;
     }
 
+    @GetMapping(value = "/admins/stream-delete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamUsersDelete() {
+        SseEmitter emitter = new SseEmitter();
+        emitter.onCompletion(() -> emittersDelete.remove(emitter));
+        emittersDelete.add(emitter);
+        return emitter;
+    }
+
     @Override
     public void onUserAdded(UserRoomDto user) {
         users.add(user);
-        notifyClients();
+        notifyClientsAdded();
     }
 
-    private void notifyClients() {
+    @Override
+    public void onUserDelete(UserRoomDto user) {
+        users.remove(user);
+        notifyClientsDeleted();
+    }
+
+    private void notifyClientsAdded() {
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(logicService.getAdminsQueue());
@@ -74,5 +90,14 @@ public class AdminController implements UserChangeListener {
         }
     }
 
-
+    private void notifyClientsDeleted() {
+        for (SseEmitter emitter : emittersDelete) {
+            try {
+                emitter.send(ResponseEntity.ok("Deleted"));
+            } catch (Exception e) {
+                emitter.complete();
+                emitters.remove(emitter);
+            }
+        }
+    }
 }

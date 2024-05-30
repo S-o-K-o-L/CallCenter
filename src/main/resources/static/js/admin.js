@@ -56,7 +56,6 @@ function displayConsultants(consultantList) {
         let specs = consultant.specs.map(spec => spec.spec).join(', ');
         listItem.textContent = `${consultant.username} - Specialization: ${specs}`;
 
-        const button = document.getElementById('addRoleBtn');
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Сохранить';
         saveBtn.style.display = 'none';
@@ -72,8 +71,8 @@ function displayConsultants(consultantList) {
         addRoleBtn.textContent = 'Редактировать специализации';
 
         let isSpecializationListDisplayed = false;
-        addRoleBtn.addEventListener('click', () => {
 
+        addRoleBtn.addEventListener('click', () => {
             function displayCheckList() {
                 if (!isSpecializationListDisplayed) {
                     specialties.forEach((spec, index) => {
@@ -96,56 +95,56 @@ function displayConsultants(consultantList) {
                     });
                 }
 
-
+                addRoleBtn.style.display = 'none';
                 specializationList.style.display = 'block';
                 saveBtn.style.display = 'inline-block';
                 cancelBtn.style.display = 'inline-block';
-
-
-                saveBtn.addEventListener('click', () => {
-                    consultant.specs = Array.from(specializationList
-                        .querySelectorAll('input[type="checkbox"]:checked'))
-                        .map(checkbox => checkbox.value);
-                    specs = consultant.specs.join(', ');
-                    console.log(consultant);
-                    sentToConsul(consultant);
-                    listItem.textContent = `${consultant.username} - Specialization: ${specs}`;
-                    resetForm();
-                });
-
-                cancelBtn.addEventListener('click', () => {
-                    resetForm();
-                });
-
-                function resetForm() {
-                    addRoleBtn.style.display = 'inline-block';
-                    specializationList.style.display = 'none';
-                    saveBtn.style.display = 'none';
-                    cancelBtn.style.display = 'none';
-                    specializationList.querySelectorAll('input[type="checkbox"]')
-                        .forEach(checkbox => {
-                            if (specs.includes(checkbox.value)) {
-                                checkbox.checked = true;
-                            }
-                        });
-                }
 
                 addRoleBtn.insertAdjacentElement('afterend', specializationList);
                 specializationList.insertAdjacentElement('afterend', saveBtn);
                 saveBtn.insertAdjacentElement('afterend', cancelBtn);
             }
-
-
-                addRoleBtn.style.display = 'none';
                 displayCheckList();
                 isSpecializationListDisplayed = true;
-
         });
+
+        saveBtn.addEventListener('click', () => {
+            addRoleBtn.style.display = 'inline-block';
+            console.log('Кнопка включена');
+            consultant.specs = Array.from(specializationList
+                .querySelectorAll('input[type="checkbox"]:checked'))
+                .map(checkbox => checkbox.value);
+            specs = consultant.specs.join(', ');
+            console.log(consultant);
+            sentToConsul(consultant);
+            listItem.textContent = `${consultant.username} - Specialization: ${specs}`;
+            const buttonContainer = document.createElement('div');
+            buttonContainer.appendChild(addRoleBtn);
+            listItem.appendChild(buttonContainer);
+            resetForm();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            addRoleBtn.style.display = 'inline-block';
+            resetForm();
+        });
+
+        function resetForm() {
+
+            specializationList.style.display = 'none';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            specializationList.querySelectorAll('input[type="checkbox"]')
+                .forEach(checkbox => {
+                    if (specs.includes(checkbox.value)) {
+                        checkbox.checked = true;
+                    }
+                });
+        }
 
         const buttonContainer = document.createElement('div');
         buttonContainer.appendChild(addRoleBtn);
         listItem.appendChild(buttonContainer);
-
         consultantListElement.appendChild(listItem);
     });
 }
@@ -153,11 +152,26 @@ function displayConsultants(consultantList) {
 let specialties = [];
 
 function updateUsers(users) {
+
     document.getElementById('userList').innerHTML = '';
     users.forEach(user => {
-        const listItem = document.createElement('li');
-        listItem.textContent = user.username + " " + user.room;
+
+        const listItem = document.createElement('div');
+        listItem.classList.add('list-item');
+
+        const userDiv = document.createElement('div');
+        userDiv.classList.add('dropdown');
+        userDiv.textContent = "Имя - " + user.username;
+        listItem.appendChild(userDiv);
+
+        const roomDiv = document.createElement('div');
+        roomDiv.classList.add('dropdown');
+        roomDiv.textContent = "Комната - " + user.room;
+        listItem.appendChild(roomDiv);
+
         const dropdown = document.createElement('select');
+
+        dropdown.classList.add('dropdown');
         specialties.forEach(s => {
             const option = document.createElement('option');
             option.textContent = s;
@@ -166,7 +180,9 @@ function updateUsers(users) {
         listItem.appendChild(dropdown);
 
         const button = document.createElement('button');
+        button.classList.add('button');
         button.textContent = 'Отправить';
+
         button.addEventListener('click', function() {
             const userData = {
                 sessionId: user.sessionId,
@@ -175,29 +191,47 @@ function updateUsers(users) {
                 spec: dropdown.value
             };
             sendDataToServer(userData);
-            fetch('http://localhost:8080/admins/delete_users', {
-                method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem("token"),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    // Удаление элемента списка после успешной отправки данных
-                    listItem.remove();
-                })
-                .catch(error => {
-                    console.error('Error sending data to server:', error);
-                });
+            listItem.remove();
         });
+
+        const buttonDel = document.createElement('button');
+        buttonDel.classList.add('button');
+        buttonDel.textContent = 'Удалить';
+
+        buttonDel.addEventListener('click', function() {
+            const userData = {
+                sessionId: user.sessionId
+            };
+            deleteUserFromServer(userData);
+            listItem.remove();
+        });
+
         listItem.appendChild(button);
+        listItem.appendChild(buttonDel);
 
         document.getElementById('userList').appendChild(listItem);
     });
+}
+
+function deleteUserFromServer(userData) {
+    fetch('http://localhost:8080/admins/delete_users', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem("token"),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData.sessionId)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // Удаление элемента списка после успешной отправки данных
+
+        })
+        .catch(error => {
+            console.error('Error sending data to server:', error);
+        });
 }
 
 function sendDataToServer(userData) {
