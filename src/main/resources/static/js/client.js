@@ -7,8 +7,6 @@ const [btnConnect, btnToggleVideo, btnToggleAudio, roomDiv, localVideo, remoteVi
 let remoteDescriptionPromise, dataChannel, roomName, localStream, remoteStream,
     rtcPeerConnection, isCaller, infoDiv;
 
-// you can use public stun and turn servers,
-// but we don't need for local development
 const iceServers = {
     iceServers: [
         {urls: `stun:${LOCAL_IP_ADDRESS}:3478`},
@@ -29,7 +27,6 @@ eventSource.onmessage = function (event) {
         remoteVideo.srcObject = null;
         isCaller = true;
     }
-
 };
 
 const messageList = document.createElement('ul');
@@ -95,6 +92,7 @@ handleSocketEvent("created", e => {
         localVideo.srcObject = stream;
         isCaller = true;
     }).catch(console.error);
+
     chatDiv.style.display = 'none';
     infoDiv = document.createElement('div');
     infoDiv.id = "info";
@@ -160,7 +158,6 @@ function sendMessage(message) {
     }
 }
 
-
 function makeChat() {
 
     chatDiv.id = "chatDiv";
@@ -202,8 +199,10 @@ handleSocketEvent("ready", e => {
         rtcPeerConnection.ontrack = onAddStream;
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
+
         dataChannel = rtcPeerConnection.createDataChannel("textChannel");
         rtcPeerConnection.ondatachannel = onDataChannel;
+
         makeChat();
 
         rtcPeerConnection
@@ -248,6 +247,7 @@ handleSocketEvent("answer", e => {
     if (isCaller && rtcPeerConnection.signalingState === "have-local-offer") {
         infoDiv = document.getElementById('info');
         infoDiv.style.display = 'none';
+
         remoteDescriptionPromise = rtcPeerConnection.setRemoteDescription(
             new RTCSessionDescription(e));
         remoteDescriptionPromise.catch(error => console.log(error));
