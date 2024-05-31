@@ -7,14 +7,12 @@ import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
 import com.rozhkov.callcenter.dto.UserRoomDto;
-import com.rozhkov.callcenter.listener.UserChangeListener;
 import com.rozhkov.callcenter.service.LogicService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 

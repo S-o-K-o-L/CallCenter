@@ -29,8 +29,8 @@ eventSource.onmessage = function (event) {
     }
 };
 
-const messageList = document.createElement('ul');
-const chatDiv = document.createElement('div');
+// const messageList = document.createElement('ul');
+// const chatDiv = document.createElement('div');
 const input = document.createElement('input');
 
 eventSource.onerror = function (error) {
@@ -93,7 +93,6 @@ handleSocketEvent("created", e => {
         isCaller = true;
     }).catch(console.error);
 
-    chatDiv.style.display = 'none';
     infoDiv = document.createElement('div');
     infoDiv.id = "info";
     infoDiv.classList.add('dropdown');
@@ -109,7 +108,6 @@ handleSocketEvent("joined", e => {
         socket.emit("ready", roomName);
     }).catch(console.error);
 
-    chatDiv.style.display = 'inline-block';
 });
 
 handleSocketEvent("candidate", e => {
@@ -135,63 +133,6 @@ handleSocketEvent("candidate", e => {
     }
 });
 
-function handleDataChannelOpen() {
-    console.log("Data channel opened.");
-}
-
-function handleDataChannelMessage(event) {
-    const message = event.data;
-    displayMessage("Remote: " + message);
-}
-
-function displayMessage(message) {
-    const listItem = document.createElement('li');
-    listItem.textContent = message;
-    messageList.appendChild(listItem);
-}
-
-function sendMessage(message) {
-    if (dataChannel.readyState === "open") {
-        dataChannel.send(message);
-    } else {
-        console.log("Data channel is not open.");
-    }
-}
-
-function makeChat() {
-
-    chatDiv.id = "chatDiv";
-    chatDiv.style.border = "1px solid black";
-    chatDiv.style.padding = "10px";
-    chatDiv.style.marginTop = "20px";
-    chatDiv.style.overflowY = "scroll";
-    chatDiv.style.height = "200px";
-
-    messageList.style.listStyleType = "none";
-    messageList.style.padding = "0";
-    chatDiv.appendChild(messageList);
-
-    input.type = "text";
-    input.placeholder = "Type your message...";
-    input.style.width = "100%";
-    input.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendMessage(input.value);
-            input.value = "";
-        }
-    });
-
-    chatDiv.appendChild(input);
-    document.body.appendChild(chatDiv);
-}
-
-function onDataChannel(event) {
-    console.log("Data channel created by remote peer.");
-    dataChannel = event.channel;
-    dataChannel.onopen = handleDataChannelOpen;
-    dataChannel.onmessage = handleDataChannelMessage;
-};
-
 handleSocketEvent("ready", e => {
     if (isCaller) {
         rtcPeerConnection = new RTCPeerConnection(iceServers);
@@ -200,11 +141,27 @@ handleSocketEvent("ready", e => {
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
 
-        sendChannel = rtcPeerConnection.createDataChannel("textChannel");
-        sendChannel.onopen = onSendChannelStateChange;
-        sendChannel.onclose = onSendChannelStateChange;
+        sendChannel = rtcPeerConnection.createDataChannel("sendChannel");
+        sendChannel.onmessage = function(event) {
+            console.log("Received message:", event.data);
+        };
 
-        makeChat();
+        sendChannel = rtcPeerConnection.createDataChannel("sendChannel");
+        sendChannel.onmessage = event => {
+            showMessage(event.data);
+        };
+        sendChannel.onopen = () => {
+            showMessage('Message channel opened');
+        };
+        sendChannel.onclose = () => {
+            showMessage('Message channel closed');
+        };
+        rtcPeerConnection.ondatachannel = event => {
+            sendChannel = event.channel;
+            sendChannel.onmessage = event => {
+                showMessage(event.data);
+            };
+        };
 
         rtcPeerConnection
             .createOffer()
@@ -225,6 +182,24 @@ handleSocketEvent("offer", e => {
         rtcPeerConnection.ontrack = onAddStream;
         rtcPeerConnection.addTrack(localStream.getTracks()[0], localStream);
         rtcPeerConnection.addTrack(localStream.getTracks()[1], localStream);
+
+        sendChannel = rtcPeerConnection.createDataChannel("sendChannel");
+        sendChannel.onmessage = event => {
+            showMessage(event.data);
+        };
+        sendChannel.onopen = () => {
+            showMessage('Message channel opened');
+        };
+        sendChannel.onclose = () => {
+            showMessage('Message channel closed');
+        };
+        rtcPeerConnection.ondatachannel = event => {
+            sendChannel = event.channel;
+            sendChannel.onmessage = event => {
+                showMessage(event.data);
+            };
+        };
+
 
         if (rtcPeerConnection.signalingState === "stable") {
             remoteDescriptionPromise = rtcPeerConnection.setRemoteDescription(
@@ -248,6 +223,7 @@ handleSocketEvent("answer", e => {
     if (isCaller && rtcPeerConnection.signalingState === "have-local-offer") {
         infoDiv = document.getElementById('info');
         infoDiv.style.display = 'none';
+
 
         remoteDescriptionPromise = rtcPeerConnection.setRemoteDescription(
             new RTCSessionDescription(e));
@@ -285,4 +261,21 @@ const onIceCandidate = e => {
 const onAddStream = e => {
     remoteVideo.srcObject = e.streams[0];
     remoteStream = e.stream;
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value;
+    messageInput.value = '';
+
+    showMessage('You: ' + message);
+
+    sendChannel.send(message);
+}
+
+function showMessage(message) {
+    const messagesDiv = document.getElementById('messages');
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    messagesDiv.appendChild(messageElement);
 }

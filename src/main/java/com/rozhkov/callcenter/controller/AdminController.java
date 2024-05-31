@@ -1,8 +1,7 @@
 package com.rozhkov.callcenter.controller;
 
-import com.rozhkov.callcenter.dto.jwt.JwtRequest;
 import com.rozhkov.callcenter.dto.UserRoomDto;
-import com.rozhkov.callcenter.listener.UserChangeListener;
+import com.rozhkov.callcenter.listener.UserAdminListener;
 import com.rozhkov.callcenter.service.ConsultantService;
 import com.rozhkov.callcenter.service.LogicService;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +23,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-public class AdminController implements UserChangeListener {
+public class AdminController implements UserAdminListener {
     private LogicService logicService;
     private final ConsultantService consultantService;
     private final List<UserRoomDto> users = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArraySet<SseEmitter> emitters = new CopyOnWriteArraySet<>();
-
     private final CopyOnWriteArraySet<SseEmitter> emittersDelete = new CopyOnWriteArraySet<>();
     @Autowired
     public void setLogicService(LogicService logicService) {

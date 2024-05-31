@@ -27,7 +27,10 @@ function displayConsultantQueue(consultant) {
         const list = document.createElement('div');
         list.classList.add('list-container');
         list.id = spec;
-        list.textContent = "Очередь " + spec;
+        const divWrap = document.createElement('div');
+        divWrap.classList.add('list-container');
+        divWrap.textContent = "Очередь " + spec;
+        list.appendChild(divWrap);
 
         document.getElementById('cons').appendChild(list);
     });
@@ -81,11 +84,38 @@ function sendUserUpdateToServer(user) {
         });
 }
 
+function deleteUserFromConsultantOnServer(userData) {
+    fetch('http://localhost:8080/admins/delete_users', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem("token"),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+        })
+        .catch(error => {
+            console.error('Error sending data to server:', error);
+        });
+}
+
 function fillQueue(users) {
     users.forEach(user => {
         let spec = user.specs.at(0);
         const list = document.getElementById(spec);
         if (list) {
+            list.innerHTML = '';
+
+            const divWrap = document.createElement('div');
+            divWrap.classList.add('list-container');
+            divWrap.textContent = "Очередь " + spec;
+            list.appendChild(divWrap);
+
             const listItem = document.createElement('div');
             listItem.classList.add('list-item');
 
@@ -115,10 +145,7 @@ function fillQueue(users) {
             buttonDel.textContent = 'Удалить';
 
             buttonDel.addEventListener('click', function () {
-                const userData = {
-                    sessionId: user.sessionId
-                };
-                deleteUserFromServer(userData);
+                deleteUserFromConsultantOnServer(user);
                 listItem.remove();
             });
 
@@ -154,4 +181,28 @@ function fetchAndDisplayUserInCons() {
 }
 
 fetchAndDisplayConsultant();
+
+const eventSource = new EventSource('http://localhost:8080/consultant/stream');
+
+eventSource.onmessage = function (event) {
+    console.log('Получено обновление:', event.data);
+    fillQueue(JSON.parse(event.data).body);
+};
+
+eventSource.onerror = function (error) {
+    console.error('Ошибка при подписке на события SSE:', error);
+};
+
+const eventSourceCons = new EventSource('http://localhost:8080/consultant/stream-spec');
+
+eventSourceCons.onmessage = function (event) {
+    console.log('Получено обновление:', event.data);
+    consultant = JSON.parse(event.data);
+    displayConsultantQueue(consultant);
+    fetchAndDisplayUserInCons();
+};
+
+eventSourceCons.onerror = function (error) {
+    console.error('Ошибка при подписке на события SSE:', error);
+};
 
