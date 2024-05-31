@@ -34,6 +34,10 @@
     vertical-align: top;
 }
 
+.top-margin {
+    margin-top: 300px;
+}
+
 .list-container {
     display: inline-block;
     text-align: left;
@@ -59,18 +63,19 @@ h1 {
     border-radius: 50%;
     border: none;
     line-height: 1.3px;
+
 }
 
 .btn-circle-new {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
     width: 100px;
     height: 100px;
     margin: 5px;
     border-radius: 50%;
     border: none;
     line-height: 1.3px;
+    bottom: 20px;
+    right: 20px;
 }
 
 .bi {

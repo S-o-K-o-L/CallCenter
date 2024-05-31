@@ -29,8 +29,6 @@ eventSource.onmessage = function (event) {
     }
 };
 
-// const messageList = document.createElement('ul');
-// const chatDiv = document.createElement('div');
 const input = document.createElement('input');
 
 eventSource.onerror = function (error) {
