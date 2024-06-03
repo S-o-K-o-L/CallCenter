@@ -66,8 +66,6 @@ function toggleTrack(trackType) {
     icon.classList.toggle("bi-mic-mute-fill", trackType === "audio" && !enabled);
 }
 
-
-
 const user = {
     username: localStorage.getItem("username"),
     password: localStorage.getItem("password"),

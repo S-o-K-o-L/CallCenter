@@ -127,7 +127,6 @@ public class LogicService {
         Session session = entityManager.unwrap(Session.class);
         session.clear();
 
-
         return ResponseEntity.ok(user);
     }
 
