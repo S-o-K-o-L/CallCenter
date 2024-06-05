@@ -6,6 +6,8 @@ const user = {
     password: 1
 };
 
+const listArray = [];
+
 function displayConsultantQueue(consultant) {
     const info = document.getElementById('consInfo');
     document.getElementById('consInfo').innerHTML='';
@@ -31,6 +33,7 @@ function displayConsultantQueue(consultant) {
         divWrap.classList.add('list-container');
         divWrap.textContent = "Очередь " + spec;
         list.appendChild(divWrap);
+        listArray.push(list);
 
         document.getElementById('cons').appendChild(list);
     });
@@ -105,16 +108,17 @@ function deleteUserFromConsultantOnServer(userData) {
 }
 
 function fillQueue(users) {
+    listArray.forEach(list => {
+        list.innerHTML = '';
+        const divWrap = document.createElement('div');
+        divWrap.classList.add('list-container');
+        divWrap.textContent = "Очередь " + list.id;
+        list.appendChild(divWrap);
+    });
     users.forEach(user => {
         let spec = user.specs.at(0);
         const list = document.getElementById(spec);
         if (list) {
-            list.innerHTML = '';
-
-            const divWrap = document.createElement('div');
-            divWrap.classList.add('list-container');
-            divWrap.textContent = "Очередь " + spec;
-            list.appendChild(divWrap);
 
             const listItem = document.createElement('div');
             listItem.classList.add('list-item');
@@ -126,6 +130,7 @@ function fillQueue(users) {
 
             const roomDiv = document.createElement('div');
             roomDiv.classList.add('dropdown');
+            roomDiv.classList.add("width-room");
             roomDiv.textContent = "Комната - " + user.room;
             listItem.appendChild(roomDiv);
 

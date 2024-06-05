@@ -167,6 +167,7 @@ function updateUsers(users) {
         const roomDiv = document.createElement('div');
         roomDiv.classList.add('dropdown');
         roomDiv.textContent = "Комната - " + user.room;
+        roomDiv.classList.add("width-room");
         listItem.appendChild(roomDiv);
 
         const dropdown = document.createElement('select');

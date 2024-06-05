@@ -152,6 +152,7 @@ handleSocketEvent("ready", e => {
         sendChannel.onclose = () => {
             showMessage('Message channel closed');
         };
+
         rtcPeerConnection.ondatachannel = event => {
             sendChannel = event.channel;
             sendChannel.onmessage = event => {

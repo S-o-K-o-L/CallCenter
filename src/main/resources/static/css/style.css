@@ -12,6 +12,10 @@
     position: absolute;
 }
 
+.width-room {
+    width: 220px;
+}
+
 
 .dropdown {
     margin-right: 10px;
@@ -85,6 +89,15 @@ h1 {
 
 .enabled-style {
     background-color: #008cff;
+}
+
+.exit-button {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    width: 100px;
+    height: 40px;
+    border-radius: 5px;
 }
 
 
