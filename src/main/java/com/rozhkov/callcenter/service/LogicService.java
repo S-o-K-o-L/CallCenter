@@ -106,8 +106,6 @@ public class LogicService {
         List<Spec> specs = specRepository.findAll();
         User user = userRepository.findByUsername(userSpecDto.getUsername()).get();
 
-        Collection<Role> roles = user.getRoles();
-        Set<Role> roleSet = new HashSet<>(roles);
         specs.removeIf(s -> !userSpecDto.getSpecs().contains(s.getSpec()));
 
         if (userSpecDto.getSpecs().isEmpty()) {
@@ -116,13 +114,10 @@ public class LogicService {
 
         userRepository.deleteUserSpec(user.getId());
         userRepository.flush();
-        for (Role role : roleSet) {
-            for (Spec spec : specs) {
-                userRepository.insertUserSpec(user.getId(),
-                        role.getId(),
-                        spec.getId());
-            }
-        }
+
+        specs.forEach(spec -> userRepository.insertUserSpec(user.getId(),
+                spec.getId()));
+
         userRepository.flush();
         Session session = entityManager.unwrap(Session.class);
         session.clear();
