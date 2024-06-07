@@ -1,4 +1,5 @@
 let consultantList = []
+
 function fetchAndDisplayConsultants() {
     fetch('http://localhost:8080/admins/get_consultant', {
         method: 'POST',
@@ -20,7 +21,6 @@ function fetchAndDisplayConsultants() {
             console.error('There was a problem with the fetch operation:', error);
         });
 }
-
 
 function sentToConsul(selectedSpecializations) {
     fetch('http://localhost:8080/update_spec', {

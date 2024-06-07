@@ -64,7 +64,7 @@ function fetchAndDisplayConsultant() {
         });
 }
 
-function sendUserUpdateToServer(user) {
+function sendUserUpdateToServer() {
     fetch('http://localhost:8080/consultant/del_cons_user', {
         method: 'POST',
         headers: {

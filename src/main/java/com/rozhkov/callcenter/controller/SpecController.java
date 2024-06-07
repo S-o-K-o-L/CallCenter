@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpecController {
     private final SpecService service;
     @PostMapping("/get_spec")
-    public ResponseEntity<?> getUsers() {
+    public ResponseEntity<?> getSpec() {
         return ResponseEntity.ok(service.getAllSpec());
     }
 }

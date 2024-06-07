@@ -9,7 +9,7 @@ function handleRegistration(event) {
     const user = {
         username: username,
         password: password,
-        passwordConfirm: passwordConfirm,
+        confirmPassword: passwordConfirm,
         email: email,
     };
 

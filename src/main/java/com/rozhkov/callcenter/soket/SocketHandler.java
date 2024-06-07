@@ -103,12 +103,6 @@ public class SocketHandler {
         printLog("onAnswer", client, room);
     }
 
-    @OnEvent("leaveRoom")
-    public void onLeaveRoom(SocketIOClient client, String room) {
-        client.leaveRoom(room);
-        printLog("onLeaveRoom", client, room);
-    }
-
     private static void printLog(String header, SocketIOClient client, String room) {
         if (room == null) return;
         int size = 0;
